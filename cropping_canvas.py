@@ -68,14 +68,15 @@ class CroppingCanvas(tk.Tk):
 	    return
 
         if self.motion_primary_zonecode == zone_codes['inside']:
-	    dX = event.x - self.event_positions[0]
-	    dY = event.y - self.event_positions[1]
-	    self.canvas.coords(self.crop_box_obj, self.crop_box_start_x + dX, self.crop_box_start_y + dY,
-			                          self.crop_box_end_x + dX, self.crop_box_end_y + dY)
-	    '''self.crop_box_start_x += dX
-	    self.crop_box_start_y += dY
-	    self.crop_box_end_x += dX
-	    self.crop_box_end_y += dY'''
+            dX = event.x - self.event_positions[0]
+            dY = event.y - self.event_positions[1]
+            self.crop_box_start_x += dX
+            self.crop_box_start_y += dY
+            self.crop_box_end_x += dX
+            self.crop_box_end_y += dY
+            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+                                                  self.crop_box_end_x, self.crop_box_end_y)
+            self.event_positions = (event.x, event.y)
 	    return
 
         if self.motion_primary_zonecode == zone_codes['upper_left']:
