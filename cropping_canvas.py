@@ -3,7 +3,9 @@ try:
 except ImportError:
     import tkinter as tk
     
-zone_codes = {}
+zone_codes = {'inside_crop': 0,
+              'outside_crop': 1,
+		}
 motion_codes = {}
     
 class CroppingCanvas(object):
@@ -19,10 +21,10 @@ class CroppingCanvas(object):
         self.crop_box_obj = None
         
     def button_primary(self, event):
-        position = (event.x, event.y)
+        positions = (event.x, event.y)
         if self._get_zone_code(positions) == zone_codes['outside_crop']:
             self.canvas.delete(self.crop_box_obj)
-            self.crop_box_start = position
+            self.crop_box_start = positions
             self.motion_primary_zonecode = zone_codes['outside_crop']
             return
         if self._get_zone_code(positions) == zone_codes['inside_crop']:
