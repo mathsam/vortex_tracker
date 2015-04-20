@@ -1,4 +1,4 @@
-import Tkinter as tk
+import numpy as np
 from PIL import Image, ImageTk
 
 try:
@@ -13,6 +13,7 @@ zone_codes["upper_left"] = 2
 zone_codes["upper_right"] = 3
 zone_codes["lower_left"] = 4
 zone_codes["lower_right"] = 5
+offset = 50
     
 class CroppingCanvas(tk.Tk):
     def __init__(self, parent=None, width=500, height=500):
@@ -50,8 +51,8 @@ class CroppingCanvas(tk.Tk):
 	    self.event_positions = positions
             return 
 
-        #self.motion_primary_zonecode = self._get_zone_code(positions)
-        self.motion_primary_zonecode = 3
+        self.motion_primary_zonecode = self._get_zone_code(positions)
+        #self.motion_primary_zonecode = 3
 	self.event_positions = positions
         return
         
@@ -143,22 +144,32 @@ class CroppingCanvas(tk.Tk):
 
         ux = positions[0]
         uy = positions[1]
+	upper_left_x = np.minimum(self.crop_box_start_x, self.crop_box_end_x)
+	upper_left_y = np.minimum(self.crop_box_start_y, self.crop_box_end_y)
+	lower_right_x = np.maximum(self.crop_box_start_x, self.crop_box_end_x)
+	lower_right_y = np.maximum(self.crop_box_start_y, self.crop_box_end_y)
+	self.crop_box_start_x = upper_left_x
+	self.crop_box_start_y = upper_left_y
+	self.crop_box_end_x = lower_right_x
+	self.crop_box_end_y = lower_right_y
 
-        if uy > border_top-10 and uy < border_top+10:
-            if ux > border_left-10 and ux < border_left+10: return 1
-            if ux > border_left+10 and ux < border_right-10: return 2
-            if ux > border_right-10 and ux < border_right+10: return 3
-            if ux > border_right+10 and ux < border_right+30: return 10
+        if ux < upper_left_x or ux > lower_right_x or uy < upper_left_y or uy > lower_right_y:
+            return zone_codes["outside"]
 
-        if uy > border_top+10 and uy < border_bottom-10:
-            if ux > border_left-10 and ux < border_left+10: return 4
-            if ux > border_left+10 and ux < border_right-10: return 5
-            if ux > border_right-10 and ux < border_right+10: return 6
+        if ux > upper_left_x+offset and ux < lower_right_x-offset and uy > upper_left_y+offset and uy < lower_right_y-offset:
+            return zone_codes["inside"]
 
-        if uy > border_bottom-10 and uy < border_bottom+10:
-           if ux > border_left-10 and ux < border_left+10: return 7
-           if ux > border_left+10 and ux < border_right-10: return 8
-           if ux > border_right-10 and ux < border_right+10: return 9
+        if ux > upper_left_x and ux < upper_left_x+offset and uy > upper_left_y and uy < upper_left_y+offset:
+            return zone_codes["upper_left"]
+
+        if ux > lower_right_x-offset and ux < lower_right_x and uy > upper_left_y and uy < upper_left_y+offset:
+            return zone_codes["upper_right"]
+
+        if ux > upper_left_x and ux < upper_left_x+offset and uy > lower_right_y-offset and uy < lower_right_y:
+            return zone_codes["lower_left"]
+
+        if ux > lower_right_x-offset and ux < lower_right_x and uy > lower_right_y-offset and uy < lower_right_y:
+            return zone_codes["lower_right"]
        
     def on_button_release(self, event):
         pass
