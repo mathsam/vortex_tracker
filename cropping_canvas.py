@@ -51,7 +51,7 @@ class CroppingCanvas(tk.Tk):
             return 
 
         #self.motion_primary_zonecode = self._get_zone_code(positions)
-        self.motion_primary_zonecode = 0
+        self.motion_primary_zonecode = 3
 	self.event_positions = positions
         return
         
@@ -80,6 +80,43 @@ class CroppingCanvas(tk.Tk):
 	    return
 
         if self.motion_primary_zonecode == zone_codes['upper_left']:
+            dX = event.x - self.event_positions[0]
+            dY = event.y - self.event_positions[1]
+            self.crop_box_start_x += dX
+            self.crop_box_start_y += dY
+            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+                                                  self.crop_box_end_x, self.crop_box_end_y)
+            self.event_positions = (event.x, event.y)
+            return
+
+        if self.motion_primary_zonecode == zone_codes['upper_right']:
+            dX = event.x - self.event_positions[0]
+            dY = event.y - self.event_positions[1]
+            self.crop_box_start_y += dY
+            self.crop_box_end_x += dX
+            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+                                                  self.crop_box_end_x, self.crop_box_end_y)
+            self.event_positions = (event.x, event.y)
+            return
+
+        if self.motion_primary_zonecode == zone_codes['lower_left']:
+            dX = event.x - self.event_positions[0]
+            dY = event.y - self.event_positions[1]
+            self.crop_box_start_x += dX
+            self.crop_box_end_y += dY
+            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+                                                  self.crop_box_end_x, self.crop_box_end_y)
+            self.event_positions = (event.x, event.y)
+            return
+
+        if self.motion_primary_zonecode == zone_codes['lower_right']:
+            dX = event.x - self.event_positions[0]
+            dY = event.y - self.event_positions[1]
+            self.crop_box_end_x += dX
+            self.crop_box_end_y += dY
+            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+                                                  self.crop_box_end_x, self.crop_box_end_y)
+            self.event_positions = (event.x, event.y)
             return
 
     def motion_over(self, event):
