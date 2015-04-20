@@ -121,22 +121,37 @@ class CroppingCanvas(tk.Tk):
             return
 
     def motion_over(self, event):
-        if event.x < 50 or event.x > 150 or event.y < 20 or event.y > 80:
+        positions = (event.x, event.y)
+        cur_zone = self._get_zone_code(positions)
+
+        if cur_zone == zone_codes['outside']:
             self.canvas.config(cursor='left_ptr')
-        if event.x > 60 and event.x < 140 and event.y > 30 and event.y < 70:
+
+        if cur_zone == zone_codes['inside']:
             self.canvas.config(cursor='fleur')
-        if event.x >= 50 and event.x <= 60 and event.y >=20 and event.y <=30:
+
+        if cur_zone == zone_codes['upper_left']:
             self.canvas.config(cursor='top_left_corner')
+
+        if cur_zone == zone_codes['upper_right']:
+            self.canvas.config(cursor='top_right_corner')
+
+        if cur_zone == zone_codes['lower_left']:
+            self.canvas.config(cursor='bottom_left_corner')
+
+        if cur_zone == zone_codes['lower_right']:
+            self.canvas.config(cursor='bottom_right_corner')
 
     def clear(self):
         return
 
     def _get_zone_code(self, positions):
-        """find out which zone the mouse pointer is at
+        """
+	find out which zone the mouse pointer is at
         avialable names of zones are:
             inside: inside of the cropping box
             outside: outside of the cropping box
-            upper_left: can be used to enlarge the cropping box
+            upper_left: 
             upper_right:
             lower_left:
             lower_right:
