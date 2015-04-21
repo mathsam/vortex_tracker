@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image, ImageTk
+import sys
 
 try:
     import Tkinter as tk
@@ -24,7 +25,8 @@ class CroppingCanvas(tk.Tk):
         self.canvas.bind('<Motion>',        self.motion_over)
         self.canvas.bind('<ButtonPress-1>', self.button_primary)
         self.canvas.bind('<B1-Motion>',     self.motion_primary)
-        self.canvas.bind('<MouseWheel>',    self.onWheel)
+        if 'linux' in sys.platform:
+            self.canvas.bind('<Button-5>',    self.onWheel)
 
         self.crop_box_obj = None
 
@@ -40,13 +42,18 @@ class CroppingCanvas(tk.Tk):
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
-    def onWheel(event):
+    def zoom_in(self, event):
+
+    def zoom_out(self, event):
+
+    def onWheel(self, event):
         d = event.delta
+        print d
         if d < 0:
             amt=0.9
         else:
             amt=1.1
-        self.canvas.scale(ALL, 200, 200 , amt, amt)
+        #self.canvas.scale(ALL, 200, 200 , amt, amt)
 
     def button_primary(self, event):
         positions = (event.x, event.y)
