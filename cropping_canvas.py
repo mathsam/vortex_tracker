@@ -13,7 +13,7 @@ zone_codes["upper_left"] = 2
 zone_codes["upper_right"] = 3
 zone_codes["lower_left"] = 4
 zone_codes["lower_right"] = 5
-offset = 50
+offset = 25 
     
 class CroppingCanvas(tk.Tk):
     def __init__(self, parent=None, width=500, height=500):
@@ -24,13 +24,14 @@ class CroppingCanvas(tk.Tk):
         self.canvas.bind('<Motion>',        self.motion_over)
         self.canvas.bind('<ButtonPress-1>', self.button_primary)
         self.canvas.bind('<B1-Motion>',     self.motion_primary)
+        self.canvas.bind('<MouseWheel>',    self.onWheel)
 
         self.crop_box_obj = None
 
-        self.crop_box_start_x = None #upper left corner x
-        self.crop_box_start_y = None #upper left corner y
-	self.crop_box_end_x = None #bottom right corner x
-        self.crop_box_end_y = None #bottom right corner y
+        self.crop_box_start_x = None	# upper left corner x
+        self.crop_box_start_y = None	# upper left corner y
+	self.crop_box_end_x = None	# bottom right corner x
+        self.crop_box_end_y = None	# bottom right corner y
 
 	self._draw_image()
 
@@ -38,6 +39,14 @@ class CroppingCanvas(tk.Tk):
         self.im = Image.open('./Images/test1_src.png')
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
+
+    def onWheel(event):
+        d = event.delta
+        if d < 0:
+            amt=0.9
+        else:
+            amt=1.1
+        self.canvas.scale(ALL, 200, 200 , amt, amt)
 
     def button_primary(self, event):
         positions = (event.x, event.y)
@@ -194,4 +203,5 @@ class CroppingCanvas(tk.Tk):
 
 if __name__ == "__main__":
     app = CroppingCanvas()
+    app.title('PyVortex: Python Program to find and track vortex')
     app.mainloop()
