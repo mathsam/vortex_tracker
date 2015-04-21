@@ -38,22 +38,32 @@ class CroppingCanvas(tk.Tk):
 
 	self._draw_image()
 
+    '''
+    def _draw_image(self):
+        self.im = Image.open('./Images/test1_src.png')
+        self.tk_im = ImageTk.PhotoImage(self.im)
+        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
+    '''
+
     def _draw_image(self):
         self.im = Image.open('./Images/test1_src.png')
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
     def zoom_in(self, event):
-        pass
+        size = (event.width, event.height)
+        resized = self.im.resize(size, Image.ANTIALIAS)
+        self.image = ImageTk.PhotoImage(resized)
+        self.canvas.delete("IMG")
+        self.canvas.create_image(0, 0, image=self.image, anchor=NW, tags="IMG")
 
-    def zoom_out(self, event):
-        pass
-
-    def zoom_in(self,event):
+    '''
+    def zoom_in(self, event):
         self.canvas.scale("all", event.x, event.y, 1.1, 1.1)
         self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+    '''
 
-    def zoom_out(self,event):
+    def zoom_out(self, event):
         self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
         self.canvas.configure(scrollregion = self.canvas.bbox("all"))
 
