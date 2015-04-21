@@ -43,8 +43,10 @@ class CroppingCanvas(tk.Tk):
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
     def zoom_in(self, event):
+        pass
 
     def zoom_out(self, event):
+        pass
 
     def onWheel(self, event):
         d = event.delta
