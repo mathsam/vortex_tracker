@@ -26,7 +26,8 @@ class CroppingCanvas(tk.Tk):
         self.canvas.bind('<ButtonPress-1>', self.button_primary)
         self.canvas.bind('<B1-Motion>',     self.motion_primary)
         if 'linux' in sys.platform:
-            self.canvas.bind('<Button-5>',    self.onWheel)
+            self.canvas.bind("<Button-4>", self.zoom_in)
+            self.canvas.bind("<Button-5>", self.zoom_out)
 
         self.crop_box_obj = None
 
@@ -48,14 +49,22 @@ class CroppingCanvas(tk.Tk):
     def zoom_out(self, event):
         pass
 
-    def onWheel(self, event):
+    def zoom_in(self,event):
+        self.canvas.scale("all", event.x, event.y, 1.1, 1.1)
+        self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+
+    def zoom_out(self,event):
+        self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
+        self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+
+    def on_wheel(self, event):
         d = event.delta
         print d
         if d < 0:
             amt=0.9
         else:
             amt=1.1
-        #self.canvas.scale(ALL, 200, 200 , amt, amt)
+        self.canvas.scale("all", event.x, event.y, amt, amt)
 
     def button_primary(self, event):
         positions = (event.x, event.y)
