@@ -32,8 +32,8 @@ class CroppingCanvas(tk.Tk):
             self.canvas.bind("<Button-4>", self.zoom_in)
             self.canvas.bind("<Button-5>", self.zoom_out)
 	'''
-	self.canvas.bind("<Button-4>", self.zoom1)
-	self.canvas.bind("<Button-5>", self.zoom2)
+	self.canvas.bind("<Button-4>", self.zoom_in)
+	self.canvas.bind("<Button-5>", self.zoom_out)
 
         self.crop_box_obj = None
         self.crop_box_start_x = None	# upper left corner x
@@ -48,18 +48,12 @@ class CroppingCanvas(tk.Tk):
 	#self._draw_image()
 	self.redraw()
 
-    '''
-    def _draw_image(self):
-        self.im = Image.open('./Images/test1_src.png')
-        self.tk_im = ImageTk.PhotoImage(self.im)
-        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
-    '''
-
     def _draw_image(self):
         self.im = Image.open('./Images/test1_src.png')
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
+    '''
     def zoom_in(self, event):
         size = (event.width, event.height)
         resized = self.im.resize(size, Image.ANTIALIAS)
@@ -67,24 +61,24 @@ class CroppingCanvas(tk.Tk):
         self.canvas.delete("IMG")
         self.canvas.create_image(0, 0, image=self.image, anchor=NW, tags="IMG")
 
-    '''
     def zoom_in(self, event):
         self.canvas.scale("all", event.x, event.y, 1.1, 1.1)
         self.canvas.configure(scrollregion = self.canvas.bbox("all"))
-    '''
 
     def zoom_out(self, event):
         self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
         self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+    '''
 
-    def zoom1(self,event):
+    def zoom_in(self,event):
         self.scale *= 2
         self.redraw(event.x, event.y)
 
-    def zoom2(self,event):
+    def zoom_out(self,event):
         self.scale *= 0.5
         self.redraw(event.x, event.y)
 
+    '''
     def on_wheel(self, event):
         d = event.delta
         print d
@@ -93,6 +87,7 @@ class CroppingCanvas(tk.Tk):
         else:
             amt=1.1
         self.canvas.scale("all", event.x, event.y, amt, amt)
+    '''
 
     def redraw(self, x=0, y=0):
         if self.im_id: self.canvas.delete(self.im_id)
@@ -110,7 +105,6 @@ class CroppingCanvas(tk.Tk):
         # draw
         self.im = ImageTk.PhotoImage(tmp.resize(size))
         self.im_id = self.canvas.create_image(x, y, image=self.im)
-        #gc.collect()
 
     def button_primary(self, event):
         positions = (event.x, event.y)
@@ -132,8 +126,8 @@ class CroppingCanvas(tk.Tk):
         return
         
     def motion_primary(self, event):
-        dX = event.x - self.event_positions[0]
-        dY = event.y - self.event_positions[1]
+        #dX = event.x - self.event_positions[0]
+        #dY = event.y - self.event_positions[1]
         dX = self.canvas.canvasx(event.x) - self.event_positions[0]
         dY = self.canvas.canvasy(event.y) - self.event_positions[1]
 
