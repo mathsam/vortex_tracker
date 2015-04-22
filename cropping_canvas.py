@@ -27,11 +27,13 @@ class CroppingCanvas(tk.Tk):
         self.canvas.bind('<Motion>',        self.motion_over)
         self.canvas.bind('<ButtonPress-1>', self.button_primary)
         self.canvas.bind('<B1-Motion>',     self.motion_primary)
+
 	'''
         if 'linux' in sys.platform:
             self.canvas.bind("<Button-4>", self.zoom_in)
             self.canvas.bind("<Button-5>", self.zoom_out)
 	'''
+
 	self.canvas.bind("<Button-4>", self.zoom_in)
 	self.canvas.bind("<Button-5>", self.zoom_out)
 
@@ -70,14 +72,14 @@ class CroppingCanvas(tk.Tk):
         self.canvas.configure(scrollregion = self.canvas.bbox("all"))
     '''
 
-    def zoom_in(self,event):
+    def zoom_in(self, event):
         self.scale *= 2
         x = self.canvas.canvasx(event.x)
         y = self.canvas.canvasy(event.y)
         self.redraw(x, y)
 
-    def zoom_out(self,event):
-        self.scale *= 0.5
+    def zoom_out(self, event):
+	self.scale *= 0.5
         x = self.canvas.canvasx(event.x)
         y = self.canvas.canvasy(event.y)
         self.redraw(x, y)
@@ -128,8 +130,6 @@ class CroppingCanvas(tk.Tk):
         return
         
     def motion_primary(self, event):
-        #dX = event.x - self.event_positions[0]
-        #dY = event.y - self.event_positions[1]
         dX = self.canvas.canvasx(event.x) - self.event_positions[0]
         dY = self.canvas.canvasy(event.y) - self.event_positions[1]
 
@@ -156,8 +156,6 @@ class CroppingCanvas(tk.Tk):
 	    return
 
         if self.motion_primary_zonecode == zone_codes['upper_left']:
-            #dX = event.x - self.event_positions[0]
-            #dY = event.y - self.event_positions[1]
             self.crop_box_start_x += dX
             self.crop_box_start_y += dY
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
@@ -166,8 +164,6 @@ class CroppingCanvas(tk.Tk):
             return
 
         if self.motion_primary_zonecode == zone_codes['upper_right']:
-            #dX = event.x - self.event_positions[0]
-            #dY = event.y - self.event_positions[1]
             self.crop_box_start_y += dY
             self.crop_box_end_x += dX
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
@@ -176,8 +172,6 @@ class CroppingCanvas(tk.Tk):
             return
 
         if self.motion_primary_zonecode == zone_codes['lower_left']:
-            #dX = event.x - self.event_positions[0]
-            #dY = event.y - self.event_positions[1]
             self.crop_box_start_x += dX
             self.crop_box_end_y += dY
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
@@ -186,8 +180,6 @@ class CroppingCanvas(tk.Tk):
             return
 
         if self.motion_primary_zonecode == zone_codes['lower_right']:
-            #dX = event.x - self.event_positions[0]
-            #dY = event.y - self.event_positions[1]
             self.crop_box_end_x += dX
             self.crop_box_end_y += dY
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
@@ -196,7 +188,6 @@ class CroppingCanvas(tk.Tk):
             return
 
     def motion_over(self, event):
-        #positions = (event.x, event.y)
         positions = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
         cur_zone = self._get_zone_code(positions)
 
