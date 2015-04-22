@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 cap = cv2.VideoCapture('/home/junyic/Work/Courses/4th_year/DataSci/final/vortex.avi')
 
