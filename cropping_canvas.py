@@ -72,11 +72,15 @@ class CroppingCanvas(tk.Tk):
 
     def zoom_in(self,event):
         self.scale *= 2
-        self.redraw(event.x, event.y)
+        x = self.canvas.canvasx(event.x)
+        y = self.canvas.canvasy(event.y)
+        self.redraw(x, y)
 
     def zoom_out(self,event):
         self.scale *= 0.5
-        self.redraw(event.x, event.y)
+        x = self.canvas.canvasx(event.x)
+        y = self.canvas.canvasy(event.y)
+        self.redraw(x, y)
 
     '''
     def on_wheel(self, event):
@@ -90,21 +94,19 @@ class CroppingCanvas(tk.Tk):
     '''
 
     def redraw(self, x=0, y=0):
-        if self.im_id: self.canvas.delete(self.im_id)
-        iw, ih = self.orig_im.size
-        # calculate crop rect
-        cw, ch = iw / self.scale, ih / self.scale
-        if cw > iw or ch > ih:
-            cw = iw
-            ch = ih
-        # crop it
-        _x = int(iw/2 - cw/2)
-        _y = int(ih/2 - ch/2)
-        tmp = self.orig_im.crop((_x, _y, _x + int(cw), _y + int(ch)))
-        size = int(cw * self.scale), int(ch * self.scale)
-        # draw
-        self.im = ImageTk.PhotoImage(tmp.resize(size))
-        self.im_id = self.canvas.create_image(x, y, image=self.im)
+       if self.im_id: self.canvas.delete(self.im_id)
+       iw, ih = self.orig_im.size
+       # calculate crop rect
+       cw, ch = iw / self.scale, ih / self.scale
+       c_ulx = int(np.maximum(0, x-cw/2)) # crop upper left x
+       c_uly = int(np.maximum(0, y-ch/2)) # crop upper left y
+       c_lrx = int(np.minimum(iw-1, x+cw/2))
+       c_lry = int(np.minimum(ih-1, y+ch/2))
+       tmp = self.orig_im.crop((c_ulx, c_uly, c_lrx, c_lry))
+       size = int(cw * self.scale), int(ch * self.scale)
+       # draw
+       self.im = ImageTk.PhotoImage(tmp.resize(size))
+       self.im_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.im)
 
     def button_primary(self, event):
         positions = (event.x, event.y)
