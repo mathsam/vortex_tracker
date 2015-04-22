@@ -14,7 +14,10 @@ zone_codes["upper_left"] = 2
 zone_codes["upper_right"] = 3
 zone_codes["lower_left"] = 4
 zone_codes["lower_right"] = 5
-offset = 25 
+OFFSET = 25 
+ZOOM_FACTOR = 1.25
+MAX_ZOOM_IN = 4.
+MIN_ZOOM_OUT = 1.25
     
 class CroppingCanvas(tk.Tk):
     def __init__(self, parent=None, width=500, height=500):
@@ -44,9 +47,16 @@ class CroppingCanvas(tk.Tk):
         self.crop_box_end_y = None	# bottom right corner y
 
 	self.scale = 1.0
+        self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
         self.orig_im = Image.open('./Images/test1_src.png')
-	self.im = None
+	self.im = None  
 	self.im_id = None
+
+        #current displayed imag is part of the original imag
+        #and the corrsponding locations is stored in self.im_locs,
+        #which is (upper_left_x, upper_left_y, lower_right_x, lower_right_y)
+        #orig_im.size is (width, height)
+        self.im_locs = (0, 0) + self.orig_im.size
 	#self._draw_image()
 	self.redraw()
 
@@ -55,34 +65,64 @@ class CroppingCanvas(tk.Tk):
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
-    '''
     def zoom_in(self, event):
-        size = (event.width, event.height)
-        resized = self.im.resize(size, Image.ANTIALIAS)
-        self.image = ImageTk.PhotoImage(resized)
-        self.canvas.delete("IMG")
-        self.canvas.create_image(0, 0, image=self.image, anchor=NW, tags="IMG")
-
-    def zoom_in(self, event):
-        self.canvas.scale("all", event.x, event.y, 1.1, 1.1)
-        self.canvas.configure(scrollregion = self.canvas.bbox("all"))
-
+        if self.scale >= MAX_ZOOM_IN:
+            return
+        self.scale *= ZOOM_FACTOR
+        self.zoom_log += 1
+        if self.zoom_log == 0:
+            self.im_locs = (0, 0) + self.orig_im.size  
+            self.redraw()
+            return
+        # in current image, the zoom in area will be
+        ch = self.im.height()
+        cw = self.im.width()
+        s = 1./ZOOM_FACTOR
+        ulx = (1-s)*event.x
+        uly = (1-s)*event.y
+        lrx = (1-s)*event.x + s*cw
+        lry = (1-s)*event.y + s*ch
+        self.im_locs = self._positions_in_origimg((ulx, uly)) + \
+                       self._positions_in_origimg((lrx, lry))
+        self.redraw()
+        return
+        
     def zoom_out(self, event):
-        self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
-        self.canvas.configure(scrollregion = self.canvas.bbox("all"))
-    '''
+        orig_w, orig_h = self.orig_im.size
+        # put the zoomed out image together with the original image, how big is the 
+        # zoomed out canvas
+        canvas_width = self.im_locs[2] - self.im_locs[0]
+        canvas_height = self.im_locs[3] - self.im_locs[1]
+        if canvas_width >= orig_w*MIN_ZOOM_OUT or canvas_height >= orig_h*MIN_ZOOM_OUT:
+            return
+        self.scale /= ZOOM_FACTOR
+        self.zoom_log -= 1
+        if self.zoom_log == 0:
+            self.im_locs = (0, 0) + self.orig_im.size  
+            self.redraw()
+            return
 
-    def zoom_in(self, event):
-        self.scale *= 2
-        x = self.canvas.canvasx(event.x)
-        y = self.canvas.canvasy(event.y)
-        self.redraw(x, y)
+        ch = self.im.height()
+        cw = self.im.width()
+        # in current image, the zoom in area will be
+        s = ZOOM_FACTOR
+        ulx = (1-s)*event.x
+        uly = (1-s)*event.y
+        lrx = (1-s)*event.x + s*cw
+        lry = (1-s)*event.y + s*ch
+        self.im_locs = self._positions_in_origimg((ulx, uly)) + \
+                       self._positions_in_origimg((lrx, lry))
+        self.redraw()
 
-    def zoom_out(self, event):
-	self.scale *= 0.5
-        x = self.canvas.canvasx(event.x)
-        y = self.canvas.canvasy(event.y)
-        self.redraw(x, y)
+    def _positions_in_origimg(self, positions):
+        x = float(positions[0])
+        y = float(positions[1])
+        cw, ch = self.orig_im.size
+        cw_in_origimg = self.im_locs[2] - self.im_locs[0]
+        ch_in_origimg = self.im_locs[3] - self.im_locs[1]
+        px_in_orig = self.im_locs[0] + int(x/cw*cw_in_origimg)
+        py_in_orig = self.im_locs[1] + int(y/ch*ch_in_origimg)
+        return px_in_orig, py_in_orig
 
     '''
     def on_wheel(self, event):
@@ -95,19 +135,11 @@ class CroppingCanvas(tk.Tk):
         self.canvas.scale("all", event.x, event.y, amt, amt)
     '''
 
-    def redraw(self, x=0, y=0):
+    def redraw(self):
        if self.im_id: self.canvas.delete(self.im_id)
-       iw, ih = self.orig_im.size
-       # calculate crop rect
-       cw, ch = iw / self.scale, ih / self.scale
-       c_ulx = int(np.maximum(0, x-cw/2)) # crop upper left x
-       c_uly = int(np.maximum(0, y-ch/2)) # crop upper left y
-       c_lrx = int(np.minimum(iw-1, x+cw/2))
-       c_lry = int(np.minimum(ih-1, y+ch/2))
-       tmp = self.orig_im.crop((c_ulx, c_uly, c_lrx, c_lry))
-       size = int(cw * self.scale), int(ch * self.scale)
+       tmp = self.orig_im.crop(self.im_locs)
        # draw
-       self.im = ImageTk.PhotoImage(tmp.resize(size))
+       self.im = ImageTk.PhotoImage(tmp.resize(self.orig_im.size))
        self.im_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.im)
 
     def button_primary(self, event):
@@ -238,19 +270,19 @@ class CroppingCanvas(tk.Tk):
         if ux < upper_left_x or ux > lower_right_x or uy < upper_left_y or uy > lower_right_y:
             return zone_codes["outside"]
 
-        if ux > upper_left_x+offset and ux < lower_right_x-offset and uy > upper_left_y+offset and uy < lower_right_y-offset:
+        if ux > upper_left_x+OFFSET and ux < lower_right_x-OFFSET and uy > upper_left_y+OFFSET and uy < lower_right_y-OFFSET:
             return zone_codes["inside"]
 
-        if ux > upper_left_x and ux < upper_left_x+offset and uy > upper_left_y and uy < upper_left_y+offset:
+        if ux > upper_left_x and ux < upper_left_x+OFFSET and uy > upper_left_y and uy < upper_left_y+OFFSET:
             return zone_codes["upper_left"]
 
-        if ux > lower_right_x-offset and ux < lower_right_x and uy > upper_left_y and uy < upper_left_y+offset:
+        if ux > lower_right_x-OFFSET and ux < lower_right_x and uy > upper_left_y and uy < upper_left_y+OFFSET:
             return zone_codes["upper_right"]
 
-        if ux > upper_left_x and ux < upper_left_x+offset and uy > lower_right_y-offset and uy < lower_right_y:
+        if ux > upper_left_x and ux < upper_left_x+OFFSET and uy > lower_right_y-OFFSET and uy < lower_right_y:
             return zone_codes["lower_left"]
 
-        if ux > lower_right_x-offset and ux < lower_right_x and uy > lower_right_y-offset and uy < lower_right_y:
+        if ux > lower_right_x-OFFSET and ux < lower_right_x and uy > lower_right_y-OFFSET and uy < lower_right_y:
             return zone_codes["lower_right"]
        
     def on_button_release(self, event):
