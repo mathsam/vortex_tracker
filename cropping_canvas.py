@@ -21,12 +21,12 @@ MIN_ZOOM_OUT = 1.25
     
 class CroppingCanvas(tk.Tk):
     def __init__(self, parent=None, width=500, height=500):
-	tk.Tk.__init__(self)
+        tk.Tk.__init__(self)
         self.x = self.y = 0
 
         self.canvas = tk.Canvas(parent, width=width, height=height, bg='white')
         self.canvas.pack(side="top", fill="both", expand=True)
-	self.canvas.config(scrollregion=self.canvas.bbox("all"))
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
         self.canvas.bind('<Motion>',        self.motion_over)
         self.canvas.bind('<ButtonPress-1>', self.button_primary)
         self.canvas.bind('<B1-Motion>',     self.motion_primary)
@@ -37,28 +37,28 @@ class CroppingCanvas(tk.Tk):
             self.canvas.bind("<Button-5>", self.zoom_out)
 	'''
 
-	self.canvas.bind("<Button-4>", self.zoom_in)
-	self.canvas.bind("<Button-5>", self.zoom_out)
+        self.canvas.bind("<Button-4>", self.zoom_in)
+        self.canvas.bind("<Button-5>", self.zoom_out)
 
         self.crop_box_obj = None
         self.crop_box_start_x = None	# upper left corner x
         self.crop_box_start_y = None	# upper left corner y
-	self.crop_box_end_x = None	# bottom right corner x
+        self.crop_box_end_x = None	# bottom right corner x
         self.crop_box_end_y = None	# bottom right corner y
 
-	self.scale = 1.0
+        self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
         self.orig_im = Image.open('./Images/test1_src.png')
-	self.im = None  
-	self.im_id = None
+        self.im = None  
+        self.im_id = None
 
         #current displayed imag is part of the original imag
         #and the corrsponding locations is stored in self.im_locs,
         #which is (upper_left_x, upper_left_y, lower_right_x, lower_right_y)
         #orig_im.size is (width, height)
         self.im_locs = (0, 0) + self.orig_im.size
-	#self._draw_image()
-	self.redraw()
+        #self._draw_image()
+        self.redraw()
 
     def _draw_image(self):
         self.im = Image.open('./Images/test1_src.png')
@@ -68,7 +68,7 @@ class CroppingCanvas(tk.Tk):
     def _locs_trans(self, s, mouse_positions, obj_positions):
         new_x = mouse_positions[0]*(1-s) + obj_positions[0]*s
         new_y = mouse_positions[1]*(1-s) + obj_positions[1]*s
-	return new_x, new_y
+        return new_x, new_y
 
     def zoom_in(self, event):
         if self.scale >= MAX_ZOOM_IN:
@@ -83,17 +83,20 @@ class CroppingCanvas(tk.Tk):
             # in current image, the zoom in area will be
             ch = self.im.height()
             cw = self.im.width()
-	    ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
-	    lrx, lry = self._locs_trans(s, (event.x, event.y), (cw, ch))
+            ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
+            lrx, lry = self._locs_trans(s, (event.x, event.y), (cw, ch))
             self.im_locs = self._positions_in_origimg((ulx, uly)) + \
                        self._positions_in_origimg((lrx, lry))
 
         self.redraw()
+
         if self.crop_box_obj: 
             self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
             self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
         return
+
+        self.canvas.tag_raise(self.crop_box_obj)
         
     def zoom_out(self, event):
         orig_w, orig_h = self.orig_im.size
@@ -113,8 +116,8 @@ class CroppingCanvas(tk.Tk):
             ch = self.im.height()
             cw = self.im.width()
             # in current image, the zoom in area will be
-	    ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
-	    lrx, lry = self._locs_trans(s, (event.x, event.y), (cw, ch))
+            ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
+            lrx, lry = self._locs_trans(s, (event.x, event.y), (cw, ch))
             self.im_locs = self._positions_in_origimg((ulx, uly)) + \
                        self._positions_in_origimg((lrx, lry))
 
@@ -125,6 +128,8 @@ class CroppingCanvas(tk.Tk):
             self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
         return
+
+        self.canvas.tag_raise(self.crop_box_obj)
 
     def _positions_in_origimg(self, positions):
         x = float(positions[0])
@@ -169,8 +174,8 @@ class CroppingCanvas(tk.Tk):
 
         self.motion_primary_zonecode = self._get_zone_code(positions)
         #self.motion_primary_zonecode = 3
-	self.event_positions = positions
-	self.canvas.tag_raise(self.crop_box_obj)
+        self.event_positions = positions
+        self.canvas.tag_raise(self.crop_box_obj)
         return
         
     def motion_primary(self, event):
@@ -180,14 +185,14 @@ class CroppingCanvas(tk.Tk):
         if self.motion_primary_zonecode == zone_codes['outside']:
             curX, curY = (event.x, event.y)
             curX, curY = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
-	    self.crop_box_start_x = self.event_positions[0]
-	    self.crop_box_start_y = self.event_positions[1]
+            self.crop_box_start_x = self.event_positions[0]
+            self.crop_box_start_y = self.event_positions[1]
 	    
             # expand rectangle as you drag the mouse
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, curX, curY)
-	    self.crop_box_end_x = curX
-	    self.crop_box_end_y = curY
-	    return
+            self.crop_box_end_x = curX
+            self.crop_box_end_y = curY
+        return
 
         if self.motion_primary_zonecode == zone_codes['inside']:
             self.crop_box_start_x += dX
@@ -197,7 +202,7 @@ class CroppingCanvas(tk.Tk):
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
                                                   self.crop_box_end_x, self.crop_box_end_y)
             self.event_positions = (event.x, event.y)
-	    return
+            return
 
         if self.motion_primary_zonecode == zone_codes['upper_left']:
             self.crop_box_start_x += dX
@@ -270,14 +275,14 @@ class CroppingCanvas(tk.Tk):
 
         ux = positions[0]
         uy = positions[1]
-	upper_left_x = np.minimum(self.crop_box_start_x, self.crop_box_end_x)
-	upper_left_y = np.minimum(self.crop_box_start_y, self.crop_box_end_y)
-	lower_right_x = np.maximum(self.crop_box_start_x, self.crop_box_end_x)
-	lower_right_y = np.maximum(self.crop_box_start_y, self.crop_box_end_y)
-	self.crop_box_start_x = upper_left_x
-	self.crop_box_start_y = upper_left_y
-	self.crop_box_end_x = lower_right_x
-	self.crop_box_end_y = lower_right_y
+        upper_left_x = np.minimum(self.crop_box_start_x, self.crop_box_end_x)
+        upper_left_y = np.minimum(self.crop_box_start_y, self.crop_box_end_y)
+        lower_right_x = np.maximum(self.crop_box_start_x, self.crop_box_end_x)
+        lower_right_y = np.maximum(self.crop_box_start_y, self.crop_box_end_y)
+        self.crop_box_start_x = upper_left_x
+        self.crop_box_start_y = upper_left_y
+        self.crop_box_end_x = lower_right_x
+        self.crop_box_end_y = lower_right_y
 
         if ux < upper_left_x or ux > lower_right_x or uy < upper_left_y or uy > lower_right_y:
             return zone_codes["outside"]
