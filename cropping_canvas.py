@@ -65,6 +65,11 @@ class CroppingCanvas(tk.Tk):
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
+    def _locs_trans(self, s, mouse_positions, obj_positions):
+        new_x = mouse_positions[0]*s + obj_positions[0]*(1-s)
+        new_y = mouse_positions[1]*s + obj_positions[1]*(1-s)
+	return new_x, new_y
+
     def zoom_in(self, event):
         if self.scale >= MAX_ZOOM_IN:
             return
@@ -78,13 +83,15 @@ class CroppingCanvas(tk.Tk):
         ch = self.im.height()
         cw = self.im.width()
         s = 1./ZOOM_FACTOR
-        ulx = (1-s)*event.x
-        uly = (1-s)*event.y
-        lrx = (1-s)*event.x + s*cw
-        lry = (1-s)*event.y + s*ch
+	ulx, uly = self._locs_trans((event.x, event.y), (0, 0))
+	lrx, lry = self._locs_trans((event.x, event.y), (0, 0))
         self.im_locs = self._positions_in_origimg((ulx, uly)) + \
                        self._positions_in_origimg((lrx, lry))
         self.redraw()
+        
+	self.crop_box_start_x, self.crop_box_start_y = self._locs_trans((event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
+	self.crop_box_end_x, self.crop_box_end_y = self._locs_trans((event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
+	self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
         return
         
     def zoom_out(self, event):
@@ -106,13 +113,16 @@ class CroppingCanvas(tk.Tk):
         cw = self.im.width()
         # in current image, the zoom in area will be
         s = ZOOM_FACTOR
-        ulx = (1-s)*event.x
-        uly = (1-s)*event.y
-        lrx = (1-s)*event.x + s*cw
-        lry = (1-s)*event.y + s*ch
+	ulx, uly = self._locs_trans((event.x, event.y), (0, 0))
+	lrx, lry = self._locs_trans((event.x, event.y), (0, 0))
         self.im_locs = self._positions_in_origimg((ulx, uly)) + \
                        self._positions_in_origimg((lrx, lry))
         self.redraw()
+        
+	self.crop_box_start_x, self.crop_box_start_y = self._locs_trans((event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
+	self.crop_box_end_x, self.crop_box_end_y = self._locs_trans((event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
+	self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
+        return
 
     def _positions_in_origimg(self, positions):
         x = float(positions[0])
