@@ -166,10 +166,10 @@ class CroppingCanvas(tk.Tk):
         # create rectangle if not yet exist
         if self.crop_box_obj is None:
             self.crop_box_start_x = self.canvas.canvasx(event.x)
-	        self.crop_box_start_y = self.canvas.canvasy(event.y)
+            self.crop_box_start_y = self.canvas.canvasy(event.y)
             self.crop_box_obj = self.canvas.create_rectangle(self.x, self.y, 1, 1, fill="black")
-	        self.motion_primary_zonecode = zone_codes['outside']
-	        self.event_positions = positions
+            self.motion_primary_zonecode = zone_codes['outside']
+            self.event_positions = positions
             return 
 
         self.motion_primary_zonecode = self._get_zone_code(positions)
