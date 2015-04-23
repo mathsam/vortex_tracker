@@ -94,9 +94,8 @@ class CroppingCanvas(tk.Tk):
             self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
             self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
+            self.canvas.tag_raise(self.crop_box_obj)
         return
-
-        self.canvas.tag_raise(self.crop_box_obj)
         
     def zoom_out(self, event):
         orig_w, orig_h = self.orig_im.size
@@ -127,9 +126,9 @@ class CroppingCanvas(tk.Tk):
             self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
             self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
+            self.canvas.tag_raise(self.crop_box_obj)
         return
 
-        self.canvas.tag_raise(self.crop_box_obj)
 
     def _positions_in_origimg(self, positions):
         x = float(positions[0])
@@ -153,11 +152,11 @@ class CroppingCanvas(tk.Tk):
     '''
 
     def redraw(self):
-       if self.im_id: self.canvas.delete(self.im_id)
-       tmp = self.orig_im.crop(self.im_locs)
-       # draw
-       self.im = ImageTk.PhotoImage(tmp.resize(self.orig_im.size))
-       self.im_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.im)
+        if self.im_id: self.canvas.delete(self.im_id)
+        tmp = self.orig_im.crop(self.im_locs)
+        # draw
+        self.im = ImageTk.PhotoImage(tmp.resize(self.orig_im.size))
+        self.im_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.im)
 
     def button_primary(self, event):
         positions = (event.x, event.y)
