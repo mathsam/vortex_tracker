@@ -192,7 +192,7 @@ class CroppingCanvas(tk.Tk):
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, curX, curY)
             self.crop_box_end_x = curX
             self.crop_box_end_y = curY
-        return
+            return
 
         if self.motion_primary_zonecode == zone_codes['inside']:
             self.crop_box_start_x += dX
