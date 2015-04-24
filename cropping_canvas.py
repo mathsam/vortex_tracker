@@ -78,7 +78,11 @@ class CroppingCanvas(tk.Tk):
 
         s = 1./ZOOM_FACTOR
         if self.zoom_log == 0:
-            self.im_locs = (0, 0) + self.orig_im.size  
+            # use the evaluated coordinate after zoom in as a correction
+            # due to the rounding error. Use it below in crop_box
+            ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
+            dx, dy = self._positions_in_origimg((ulx, uly))
+            self.im_locs = (0, 0) + self.orig_im.size
         else:
             # in current image, the zoom in area will be
             ch = self.im.height()
@@ -93,6 +97,11 @@ class CroppingCanvas(tk.Tk):
         if self.crop_box_obj: 
             self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
             self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
+            if self.zoom_log == 0:
+                self.crop_box_start_x += dx
+                self.crop_box_start_y += dy
+                self.crop_box_end_x += dx
+                self.crop_box_end_y += dy 
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
             self.canvas.tag_raise(self.crop_box_obj)
         return
@@ -110,6 +119,8 @@ class CroppingCanvas(tk.Tk):
 
         s = ZOOM_FACTOR
         if self.zoom_log == 0:
+            ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
+            dx, dy = self._positions_in_origimg((ulx, uly))
             self.im_locs = (0, 0) + self.orig_im.size  
         else:
             ch = self.im.height()
@@ -123,6 +134,11 @@ class CroppingCanvas(tk.Tk):
         self.redraw()
 
         if self.crop_box_obj: 
+            if self.zoom_log == 0:
+                self.crop_box_start_x += dx
+                self.crop_box_start_y += dy
+                self.crop_box_end_x += dx
+                self.crop_box_end_y += dy 
             self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
             self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
