@@ -4,6 +4,8 @@ from scipy.io import netcdf
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import os
+import ttk
 
 class Vortex(Frame):                  # class of the interface
     def __init__(self, parent=None):
@@ -19,8 +21,8 @@ class Vortex(Frame):                  # class of the interface
 
     def createWidgets(self):          # get all widgets
         self.makeMenuBar()
-        self.makeCanvas()
-        self.selectDataParameter()
+        self.addExplanation()
+        #self.makeCanvas()
         self.saveData()
 
     def makeMenuBar(self):            # get menubar
@@ -28,18 +30,17 @@ class Vortex(Frame):                  # class of the interface
         self.master.config(menu=self.menubar)
         self.fileMenu()
 
+    def addExplanation(self):
+        self.text = Text(self)
+        self.text.insert(END, 'Please load your netcdf files or pictures')
+        self.text.pack()
+
     def makeCanvas(self):             # get canvans
-        canvas = Canvas(width=525, height=300, bg='white')
-        canvas.pack(side='bottom')
+        self.canvas = Canvas(width=525, height=300, bg='white')
+        self.canvas.pack(side='bottom')
         
 
-    def selectDataParameter(self):    # set layer No. and time and then draw the picture
-        self.layer_spinbox = Spinbox(self, from_=0, to=1)
-        self.time_spinbox = Spinbox(self, from_=0, to=1999)
-        #button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}
-        self.layer_spinbox.pack()
-        self.time_spinbox.pack()
-        Button(self, text='draw', command=self.drawPic).pack()
+   
 
     def fileMenu(self):               # define the action of file menu
         pulldown = Menu(self.menubar)
@@ -47,16 +48,57 @@ class Vortex(Frame):                  # class of the interface
         self.menubar.add_cascade(label='File', menu=pulldown)
 
     def loadFiles(self):              # load files and transfer from netCDF to picture
-        filename = askopenfilename()
-        f = netcdf.netcdf_file(filename,'r')
-        self.dataMatr = f.variables['PV_anomaly']
+        self.filename = askopenfilename(filetypes=(('NetCDF file','*.nc'),
+                                              ('Picture file','*.png')))
+        if os.path.splitext(self.filename)[1] == '.nc':
+            self.filetype = 0
+            self.getNetCdfData()
+            #self.makeCanvas()
+        elif os.path.splitext(self.filename)[1] == '.jpg' or '.jpeg' or '.png':
+            self.filetype = 1
+            self.getImgData()
+            #self.makeCanvas()
+            
+        else:
+            print 'error'
+
+        #f = netcdf.netcdf_file(filename,'r')
+        #self.dataMatr = f.variables['PV_anomaly']
+
+    def getNetCdfData(self):
+        f = netcdf.netcdf_file(self.filename,'r')
+        keywords = f.variables.keys()
+        self.keySelected = keywords[0]
+        self.combobox = ttk.Combobox(self, textvariable=StringVar())
+        self.combobox['values'] = keywords
+        self.combobox.current(0)
+        self.combobox.bind('<<ComboboxSelected>>',self.combobox_do)
+        self.combobox.pack()
+        self.dataMatr = f.variables[self.keySelected];
+        self.time_spinbox = Spinbox(self, from_=0, to=self.dataMatr.shape[0])
+        self.layer_spinbox = Spinbox(self, from_=0, to=self.dataMatr.shape[1])
+        #button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}
+        self.layer_spinbox.pack()
+        self.time_spinbox.pack()
+        Button(self, text='draw', command=self.drawNetCDF).pack()
         
-    def drawPic(self):                # draw the diagram on canvas
+    def combobox_do(self,event):
+        self.keySelected = self.combobox.get()
+
+    def drawNetCDF(self):                # draw the diagram on canvas
         layer = self.layer_spinbox.get()
         time = self.time_spinbox.get()
-        imgMatr = self.dataMatr[time, layer]
-        numbins = np.amax(imgMatr)
-        nondimen_imgMatr = imgMatr/numbins
+        self.imgMatr = self.dataMatr[time, layer]
+        numbins = np.amax(self.imgMatr)
+        nondimen_imgMatr = self.imgMatr/numbins
+        plt.imshow(nondimen_imgMatr)
+        plt.show()
+        #self.canvas.create_image(0,0,image=nondimen_imgMatr)
+
+    def getImgData(self):
+        self.imgMatr = mpimg.imread(self.filename)
+        numbins = np.amax(self.imgMatr)
+        nondimen_imgMatr = self.imgMatr/numbins
         plt.imshow(nondimen_imgMatr)
         plt.show()
 
