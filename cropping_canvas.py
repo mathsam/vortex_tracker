@@ -20,7 +20,7 @@ MAX_ZOOM_IN = 4.
 MIN_ZOOM_OUT = 1.25
     
 class CroppingCanvas(tk.Tk):
-    def __init__(self, parent=None, width=500, height=500):
+    def __init__(self, parent=None, width=600, height=800):
         tk.Tk.__init__(self)
         self.x = self.y = 0
 
@@ -48,7 +48,7 @@ class CroppingCanvas(tk.Tk):
 
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
-        self.orig_im = Image.open('./Images/test1_src.png')
+        self.orig_im = Image.open('./Images/test1_src.png').resize((width, height))
         self.im = None  
         self.im_id = None
 
@@ -62,6 +62,7 @@ class CroppingCanvas(tk.Tk):
 
     def _draw_image(self):
         self.im = Image.open('./Images/test1_src.png')
+        self.im.resize((self.canvas.width, self.canvas.height))
         self.tk_im = ImageTk.PhotoImage(self.im)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
 
@@ -80,8 +81,8 @@ class CroppingCanvas(tk.Tk):
         if self.zoom_log == 0:
             # use the evaluated coordinate after zoom in as a correction
             # due to the rounding error. Use it below in crop_box
-            ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
-            dx, dy = self._positions_in_origimg((ulx, uly))
+            self.crop_box_start_x, self.crop_box_start_y = self._positions_in_origimg((self.crop_box_start_x, self.crop_box_start_y))
+            self.crop_box_end_x, self.crop_box_end_y = self._positions_in_origimg((self.crop_box_end_x, self.crop_box_end_y))
             self.im_locs = (0, 0) + self.orig_im.size
         else:
             # in current image, the zoom in area will be
@@ -95,13 +96,10 @@ class CroppingCanvas(tk.Tk):
         self.redraw()
 
         if self.crop_box_obj: 
-            self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
-            self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
-            if self.zoom_log == 0:
-                self.crop_box_start_x += dx
-                self.crop_box_start_y += dy
-                self.crop_box_end_x += dx
-                self.crop_box_end_y += dy 
+            if self.zoom_log != 0:
+                self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
+                self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
+
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
             self.canvas.tag_raise(self.crop_box_obj)
         return
@@ -119,8 +117,8 @@ class CroppingCanvas(tk.Tk):
 
         s = ZOOM_FACTOR
         if self.zoom_log == 0:
-            ulx, uly = self._locs_trans(s, (event.x, event.y), (0, 0))
-            dx, dy = self._positions_in_origimg((ulx, uly))
+            self.crop_box_start_x, self.crop_box_start_y = self._positions_in_origimg((self.crop_box_start_x, self.crop_box_start_y))
+            self.crop_box_end_x, self.crop_box_end_y = self._positions_in_origimg((self.crop_box_end_x, self.crop_box_end_y))
             self.im_locs = (0, 0) + self.orig_im.size  
         else:
             ch = self.im.height()
@@ -134,13 +132,10 @@ class CroppingCanvas(tk.Tk):
         self.redraw()
 
         if self.crop_box_obj: 
-            if self.zoom_log == 0:
-                self.crop_box_start_x += dx
-                self.crop_box_start_y += dy
-                self.crop_box_end_x += dx
-                self.crop_box_end_y += dy 
-            self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
-            self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
+            if self.zoom_log != 0:
+                self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
+                self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
+
             self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
             self.canvas.tag_raise(self.crop_box_obj)
         return
@@ -152,24 +147,14 @@ class CroppingCanvas(tk.Tk):
         cw, ch = self.orig_im.size
         cw_in_origimg = self.im_locs[2] - self.im_locs[0]
         ch_in_origimg = self.im_locs[3] - self.im_locs[1]
-        px_in_orig = self.im_locs[0] + int(x/cw*cw_in_origimg)
-        py_in_orig = self.im_locs[1] + int(y/ch*ch_in_origimg)
+        px_in_orig = self.im_locs[0] + x/cw*cw_in_origimg
+        py_in_orig = self.im_locs[1] + y/ch*ch_in_origimg
         return px_in_orig, py_in_orig
 
-    '''
-    def on_wheel(self, event):
-        d = event.delta
-        print d
-        if d < 0:
-            amt=0.9
-        else:
-            amt=1.1
-        self.canvas.scale("all", event.x, event.y, amt, amt)
-    '''
 
     def redraw(self):
         if self.im_id: self.canvas.delete(self.im_id)
-        tmp = self.orig_im.crop(self.im_locs)
+        tmp = self.orig_im.crop(map(int, self.im_locs))
         # draw
         self.im = ImageTk.PhotoImage(tmp.resize(self.orig_im.size))
         self.im_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.im)
