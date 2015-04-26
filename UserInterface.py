@@ -88,10 +88,11 @@ class Vortex(Frame):                  # class of the interface
         layer = self.layer_spinbox.get()
         time = self.time_spinbox.get()
         self.imgMatr = self.dataMatr[time, layer]
-        minMatr = np.amin(self.imgMatr)*np.ones(self.imgMatr.shape)
-        range = np.amax(self.imgMatr)-np.amin(self.imgMatr)
-        nondimen_imgMatr = (self.imgMatr-minMatr)/range
-        plt.imshow(nondimen_imgMatr)
+        #minMatr = np.amin(self.imgMatr)*np.ones(self.imgMatr.shape)
+        #range = np.amax(self.imgMatr)-np.amin(self.imgMatr)
+        #nondimen_imgMatr = (self.imgMatr-minMatr)/range
+        #plt.imshow(nondimen_imgMatr)
+        plt.imshow(self.imgMatr)
         plt.show()
     #self.canvas.create_image(0,0,image=nondimen_imgMatr)
     
