@@ -17,39 +17,39 @@ class Vortex(Frame):                  # class of the interface
         self.x_end = 0.1
         self.y_end = 0.1
         self.master.title("Vortex Automatic Tracking System")
-        #self.master.iconname('tkpython')
-
+    #self.master.iconname('tkpython')
+    
     def createWidgets(self):          # get all widgets
         self.makeMenuBar()
         self.addExplanation()
         #self.makeCanvas()
         self.saveData()
-
+    
     def makeMenuBar(self):            # get menubar
         self.menubar = Menu(self.master)
         self.master.config(menu=self.menubar)
         self.fileMenu()
-
+    
     def addExplanation(self):
         self.text = Text(self)
         self.text.insert(END, 'Please load your netcdf files or pictures')
         self.text.pack()
-
+    
     def makeCanvas(self):             # get canvans
         self.canvas = Canvas(width=525, height=300, bg='white')
         self.canvas.pack(side='bottom')
-        
-
-   
-
+    
+    
+    
+    
     def fileMenu(self):               # define the action of file menu
         pulldown = Menu(self.menubar)
         pulldown.add_command(label='Load',command=self.loadFiles)
         self.menubar.add_cascade(label='File', menu=pulldown)
-
+    
     def loadFiles(self):              # load files and transfer from netCDF to picture
         self.filename = askopenfilename(filetypes=(('NetCDF file','*.nc'),
-                                              ('Picture file','*.png')))
+                                                   ('Picture file','*.png')))
         if os.path.splitext(self.filename)[1] == '.nc':
             self.filetype = 0
             self.getNetCdfData()
@@ -58,12 +58,11 @@ class Vortex(Frame):                  # class of the interface
             self.filetype = 1
             self.getImgData()
             #self.makeCanvas()
-            
         else:
             print 'error'
 
-        #f = netcdf.netcdf_file(filename,'r')
-        #self.dataMatr = f.variables['PV_anomaly']
+#f = netcdf.netcdf_file(filename,'r')
+#self.dataMatr = f.variables['PV_anomaly']
 
     def getNetCdfData(self):
         f = netcdf.netcdf_file(self.filename,'r')
@@ -81,7 +80,7 @@ class Vortex(Frame):                  # class of the interface
         self.layer_spinbox.pack()
         self.time_spinbox.pack()
         Button(self, text='draw', command=self.drawNetCDF).pack()
-        
+    
     def combobox_do(self,event):
         self.keySelected = self.combobox.get()
 
@@ -89,19 +88,20 @@ class Vortex(Frame):                  # class of the interface
         layer = self.layer_spinbox.get()
         time = self.time_spinbox.get()
         self.imgMatr = self.dataMatr[time, layer]
-        numbins = np.amax(self.imgMatr)
-        nondimen_imgMatr = self.imgMatr/numbins
+        minMatr = np.amin(self.imgMatr)*np.ones(self.imgMatr.shape)
+        range = np.amax(self.imgMatr)-np.amin(self.imgMatr)
+        nondimen_imgMatr = (self.imgMatr-minMatr)/range
         plt.imshow(nondimen_imgMatr)
         plt.show()
-        #self.canvas.create_image(0,0,image=nondimen_imgMatr)
-
+    #self.canvas.create_image(0,0,image=nondimen_imgMatr)
+    
     def getImgData(self):
         self.imgMatr = mpimg.imread(self.filename)
         numbins = np.amax(self.imgMatr)
         nondimen_imgMatr = self.imgMatr/numbins
         plt.imshow(nondimen_imgMatr)
         plt.show()
-
+    
     def saveData(self):
         self.x_initial = 0
         self.y_initial = 0
