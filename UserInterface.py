@@ -1,11 +1,14 @@
 from Tkinter import *
 from tkFileDialog import *
 from scipy.io import netcdf
+from matplotlib import cm
+import PIL
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
 import ttk
+import cropping_canvas
 
 class Vortex(Frame):                  # class of the interface
     def __init__(self, parent=None):
@@ -17,11 +20,13 @@ class Vortex(Frame):                  # class of the interface
         self.x_end = 0.1
         self.y_end = 0.1
         self.master.title("Vortex Automatic Tracking System")
+        self.canvas = cropping_canvas.CroppingCanvas(self)
+        self.canvas.pack(side='bottom')
     #self.master.iconname('tkpython')
     
     def createWidgets(self):          # get all widgets
         self.makeMenuBar()
-        self.addExplanation()
+        #self.addExplanation()
         #self.makeCanvas()
         self.saveData()
     
@@ -36,9 +41,8 @@ class Vortex(Frame):                  # class of the interface
         self.text.pack()
     
     def makeCanvas(self):             # get canvans
-        self.canvas = Canvas(width=525, height=300, bg='white')
+        self.canvas = cropping_canvas.Canvas(self)
         self.canvas.pack(side='bottom')
-    
     
     
     
@@ -88,14 +92,12 @@ class Vortex(Frame):                  # class of the interface
         layer = self.layer_spinbox.get()
         time = self.time_spinbox.get()
         self.imgMatr = self.dataMatr[time, layer]
-        #minMatr = np.amin(self.imgMatr)*np.ones(self.imgMatr.shape)
-        #range = np.amax(self.imgMatr)-np.amin(self.imgMatr)
-        #nondimen_imgMatr = (self.imgMatr-minMatr)/range
-        #plt.imshow(nondimen_imgMatr)
-        plt.imshow(self.imgMatr)
-        plt.show()
-    #self.canvas.create_image(0,0,image=nondimen_imgMatr)
-    
+        mapper = cm.ScalarMappable(cmap=cm.hsv)
+        image_array = np.uint8(255*mapper.to_rgba(self.imgMatr))
+        image_to_disp = PIL.Image.fromarray(image_array)
+        image_name = "time=%s, layer=%s" %(time, layer)
+        self.canvas.update_image(image_to_disp, image_name)
+            
     def getImgData(self):
         self.imgMatr = mpimg.imread(self.filename)
         numbins = np.amax(self.imgMatr)

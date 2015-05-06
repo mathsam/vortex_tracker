@@ -19,26 +19,24 @@ ZOOM_FACTOR = 1.25
 MAX_ZOOM_IN = 4.
 MIN_ZOOM_OUT = 1.25
     
-class CroppingCanvas(tk.Tk):
-    def __init__(self, parent=None, width=600, height=800):
-        tk.Tk.__init__(self)
+class CroppingCanvas(tk.Canvas):
+    def __init__(self, parent=None, width=768, height=768):
+        tk.Canvas.__init__(self, parent, width=width, height=height, bg='white')
         self.x = self.y = 0
-
-        self.canvas = tk.Canvas(parent, width=width, height=height, bg='white')
-        self.canvas.pack(side="top", fill="both", expand=True)
-        self.canvas.config(scrollregion=self.canvas.bbox("all"))
-        self.canvas.bind('<Motion>',        self.motion_over)
-        self.canvas.bind('<ButtonPress-1>', self.button_primary)
-        self.canvas.bind('<B1-Motion>',     self.motion_primary)
+        self.pack(side="top", fill="both", expand=True)
+        self.config(scrollregion=self.bbox("all"))
+        self.bind('<Motion>',        self.motion_over)
+        self.bind('<ButtonPress-1>', self.button_primary)
+        self.bind('<B1-Motion>',     self.motion_primary)
 
 	'''
         if 'linux' in sys.platform:
-            self.canvas.bind("<Button-4>", self.zoom_in)
-            self.canvas.bind("<Button-5>", self.zoom_out)
+            self.bind("<Button-4>", self.zoom_in)
+            self.bind("<Button-5>", self.zoom_out)
 	'''
 
-        self.canvas.bind("<Button-4>", self.zoom_in)
-        self.canvas.bind("<Button-5>", self.zoom_out)
+        self.bind("<Button-4>", self.zoom_in)
+        self.bind("<Button-5>", self.zoom_out)
 
         self.crop_box_obj = None
         self.crop_box_start_x = None	# upper left corner x
@@ -48,7 +46,7 @@ class CroppingCanvas(tk.Tk):
 
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
-        self.orig_im = Image.open('./Images/test1_src.png').resize((width, height))
+        self.orig_im = Image.open('./Images/welcome.png').resize((width, height))
         self.im = None  
         self.im_id = None
 
@@ -57,14 +55,22 @@ class CroppingCanvas(tk.Tk):
         #which is (upper_left_x, upper_left_y, lower_right_x, lower_right_y)
         #orig_im.size is (width, height)
         self.im_locs = (0, 0) + self.orig_im.size
-        #self._draw_image()
         self.redraw()
 
-    def _draw_image(self):
-        self.im = Image.open('./Images/test1_src.png')
-        self.im.resize((self.canvas.width, self.canvas.height))
-        self.tk_im = ImageTk.PhotoImage(self.im)
-        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_im)
+    def update_image(self, imag_to_disp, imag_name):
+        """update the image drawn on canvas
+        Args:
+                imag_to_disp: PIL Image object
+                imag_name: a string describing the image
+        """
+        self.orig_im = imag_to_disp.resize((self.winfo_width(), self.winfo_height()))
+        self.imag_name = imag_name
+        self.scale = 1.0
+        self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
+        self.im = None
+        self.im_id = None
+        self.im_locs = (0, 0) + self.orig_im.size
+        self.redraw()
 
     def _locs_trans(self, s, mouse_positions, obj_positions):
         new_x = mouse_positions[0]*(1-s) + obj_positions[0]*s
@@ -100,8 +106,8 @@ class CroppingCanvas(tk.Tk):
                 self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
                 self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
 
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
-            self.canvas.tag_raise(self.crop_box_obj)
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
+            self.tag_raise(self.crop_box_obj)
         return
         
     def zoom_out(self, event):
@@ -136,8 +142,8 @@ class CroppingCanvas(tk.Tk):
                 self.crop_box_start_x, self.crop_box_start_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_start_x, self.crop_box_start_y))
                 self.crop_box_end_x, self.crop_box_end_y = self._locs_trans(1/s, (event.x, event.y), (self.crop_box_end_x, self.crop_box_end_y))
 
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
-            self.canvas.tag_raise(self.crop_box_obj)
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, self.crop_box_end_x, self.crop_box_end_y)
+            self.tag_raise(self.crop_box_obj)
         return
 
 
@@ -153,21 +159,22 @@ class CroppingCanvas(tk.Tk):
 
 
     def redraw(self):
-        if self.im_id: self.canvas.delete(self.im_id)
+        if self.im_id: self.delete(self.im_id)
         tmp = self.orig_im.crop(map(int, self.im_locs))
         # draw
         self.im = ImageTk.PhotoImage(tmp.resize(self.orig_im.size))
-        self.im_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.im)
+        self.im_id = self.create_image(0, 0, anchor=tk.NW, image=self.im)
 
     def button_primary(self, event):
         positions = (event.x, event.y)
-        positions = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        positions = (self.canvasx(event.x), self.canvasy(event.y))
         
         # create rectangle if not yet exist
         if self.crop_box_obj is None:
-            self.crop_box_start_x = self.canvas.canvasx(event.x)
-            self.crop_box_start_y = self.canvas.canvasy(event.y)
-            self.crop_box_obj = self.canvas.create_rectangle(self.x, self.y, 1, 1, fill="black")
+            self.crop_box_start_x = self.canvasx(event.x)
+            self.crop_box_start_y = self.canvasy(event.y)
+            self.crop_box_obj = self.create_rectangle(self.x, self.y, 1, 1, fill="", 
+                                                      width=3.0, outline='black')
             self.motion_primary_zonecode = zone_codes['outside']
             self.event_positions = positions
             return 
@@ -175,21 +182,21 @@ class CroppingCanvas(tk.Tk):
         self.motion_primary_zonecode = self._get_zone_code(positions)
         #self.motion_primary_zonecode = 3
         self.event_positions = positions
-        self.canvas.tag_raise(self.crop_box_obj)
+        self.tag_raise(self.crop_box_obj)
         return
         
     def motion_primary(self, event):
-        dX = self.canvas.canvasx(event.x) - self.event_positions[0]
-        dY = self.canvas.canvasy(event.y) - self.event_positions[1]
+        dX = self.canvasx(event.x) - self.event_positions[0]
+        dY = self.canvasy(event.y) - self.event_positions[1]
 
         if self.motion_primary_zonecode == zone_codes['outside']:
             curX, curY = (event.x, event.y)
-            curX, curY = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+            curX, curY = (self.canvasx(event.x), self.canvasy(event.y))
             self.crop_box_start_x = self.event_positions[0]
             self.crop_box_start_y = self.event_positions[1]
 	    
             # expand rectangle as you drag the mouse
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, curX, curY)
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y, curX, curY)
             self.crop_box_end_x = curX
             self.crop_box_end_y = curY
             return
@@ -199,7 +206,7 @@ class CroppingCanvas(tk.Tk):
             self.crop_box_start_y += dY
             self.crop_box_end_x += dX
             self.crop_box_end_y += dY
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
                                                   self.crop_box_end_x, self.crop_box_end_y)
             self.event_positions = (event.x, event.y)
             return
@@ -207,7 +214,7 @@ class CroppingCanvas(tk.Tk):
         if self.motion_primary_zonecode == zone_codes['upper_left']:
             self.crop_box_start_x += dX
             self.crop_box_start_y += dY
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
                                                   self.crop_box_end_x, self.crop_box_end_y)
             self.event_positions = (event.x, event.y)
             return
@@ -215,7 +222,7 @@ class CroppingCanvas(tk.Tk):
         if self.motion_primary_zonecode == zone_codes['upper_right']:
             self.crop_box_start_y += dY
             self.crop_box_end_x += dX
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
                                                   self.crop_box_end_x, self.crop_box_end_y)
             self.event_positions = (event.x, event.y)
             return
@@ -223,7 +230,7 @@ class CroppingCanvas(tk.Tk):
         if self.motion_primary_zonecode == zone_codes['lower_left']:
             self.crop_box_start_x += dX
             self.crop_box_end_y += dY
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
                                                   self.crop_box_end_x, self.crop_box_end_y)
             self.event_positions = (event.x, event.y)
             return
@@ -231,32 +238,32 @@ class CroppingCanvas(tk.Tk):
         if self.motion_primary_zonecode == zone_codes['lower_right']:
             self.crop_box_end_x += dX
             self.crop_box_end_y += dY
-            self.canvas.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
+            self.coords(self.crop_box_obj, self.crop_box_start_x, self.crop_box_start_y,
                                                   self.crop_box_end_x, self.crop_box_end_y)
             self.event_positions = (event.x, event.y)
             return
 
     def motion_over(self, event):
-        positions = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        positions = (self.canvasx(event.x), self.canvasy(event.y))
         cur_zone = self._get_zone_code(positions)
 
         if cur_zone == zone_codes['outside']:
-            self.canvas.config(cursor='left_ptr')
+            self.config(cursor='left_ptr')
 
         if cur_zone == zone_codes['inside']:
-            self.canvas.config(cursor='fleur')
+            self.config(cursor='fleur')
 
         if cur_zone == zone_codes['upper_left']:
-            self.canvas.config(cursor='top_left_corner')
+            self.config(cursor='top_left_corner')
 
         if cur_zone == zone_codes['upper_right']:
-            self.canvas.config(cursor='top_right_corner')
+            self.config(cursor='top_right_corner')
 
         if cur_zone == zone_codes['lower_left']:
-            self.canvas.config(cursor='bottom_left_corner')
+            self.config(cursor='bottom_left_corner')
 
         if cur_zone == zone_codes['lower_right']:
-            self.canvas.config(cursor='bottom_right_corner')
+            self.config(cursor='bottom_right_corner')
 
     def clear(self):
         return
@@ -309,6 +316,7 @@ class CroppingCanvas(tk.Tk):
         pass
 
 if __name__ == "__main__":
-    app = CroppingCanvas()
-    app.title('PyVortex: Python Program to find and track vortex')
-    app.mainloop()
+    master = tk.Tk()
+    app = CroppingCanvas(master)
+    master.title('PyVortex: Python Program to find and track vortex')
+    tk.mainloop()
