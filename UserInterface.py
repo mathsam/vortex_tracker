@@ -70,7 +70,12 @@ class Vortex(Frame):                  # class of the interface
 
     def getNetCdfData(self):
         f = netcdf.netcdf_file(self.filename,'r')
-        keywords = f.variables.keys()
+        keywords = []
+        # display the fields that at least have 3 axes, either
+        # (time, layer, lon, lat) or (time, lon, lat)
+        for ikey in f.variables.keys():
+            if len(f.variables[ikey].shape) >= 3:
+                keywords.append(ikey) 
         self.keySelected = keywords[0]
         self.combobox = ttk.Combobox(self, textvariable=StringVar())
         self.combobox['values'] = keywords
@@ -85,8 +90,9 @@ class Vortex(Frame):                  # class of the interface
         self.time_spinbox.pack()
         Button(self, text='draw', command=self.drawNetCDF).pack()
     
-    def combobox_do(self,event):
+    def combobox_do(self, event):
         self.keySelected = self.combobox.get()
+        log_filename = self.filename + "_" + self.keySelected + ".log"
 
     def drawNetCDF(self):                # draw the diagram on canvas
         layer = self.layer_spinbox.get()
@@ -95,8 +101,10 @@ class Vortex(Frame):                  # class of the interface
         mapper = cm.ScalarMappable(cmap=cm.hsv)
         image_array = np.uint8(255*mapper.to_rgba(self.imgMatr))
         image_to_disp = PIL.Image.fromarray(image_array)
-        image_name = "time=%s, layer=%s" %(time, layer)
-        self.canvas.update_image(image_to_disp, image_name)
+        image_info = {'field_name': self.filename + '_' + self.keySelected,
+                      'layer': layer,
+                      'time': time}
+        self.canvas.update_image(image_to_disp, image_info)
             
     def getImgData(self):
         self.imgMatr = mpimg.imread(self.filename)

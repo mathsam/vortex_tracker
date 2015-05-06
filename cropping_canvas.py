@@ -1,6 +1,7 @@
 import numpy as np
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import sys
+import position_logger
 
 try:
     import Tkinter as tk
@@ -37,6 +38,7 @@ class CroppingCanvas(tk.Canvas):
 
         self.bind("<Button-4>", self.zoom_in)
         self.bind("<Button-5>", self.zoom_out)
+        self.bind("<Double-Button-1>", self.log_cropbox_positions)
 
         self.crop_box_obj = None
         self.crop_box_start_x = None	# upper left corner x
@@ -57,20 +59,44 @@ class CroppingCanvas(tk.Canvas):
         self.im_locs = (0, 0) + self.orig_im.size
         self.redraw()
 
-    def update_image(self, imag_to_disp, imag_name):
+    def update_image(self, imag_to_disp, imag_info):
         """update the image drawn on canvas
         Args:
                 imag_to_disp: PIL Image object
-                imag_name: a string describing the image
+                imag_info: a dict describing the image
+                           desired format is {'field_name': 'PV_anomaly.nc.PV',
+                                              'layer': 0,
+                                              'time', 501}
         """
         self.orig_im = imag_to_disp.resize((self.winfo_width(), self.winfo_height()))
-        self.imag_name = imag_name
+        self.imag_info = imag_info
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
         self.im = None
         self.im_id = None
         self.im_locs = (0, 0) + self.orig_im.size
+        self._clear_cropbox()
         self.redraw()
+
+    def _clear_cropbox(self):
+        self.delete('cropbox')
+        self.crop_box_obj = None
+        self.crop_box_start_x = None	# upper left corner x
+        self.crop_box_start_y = None	# upper left corner y
+        self.crop_box_end_x = None	# bottom right corner x
+        self.crop_box_end_y = None	# bottom right corner y
+       
+
+    def log_cropbox_positions(self, event):
+        """log the cropping box positions in the original (un-zoomed) image"""
+        if self.crop_box_obj:
+            upper_left = self._positions_in_origimg((self.crop_box_start_x, self.crop_box_start_y))
+            lower_right = self._positions_in_origimg((self.crop_box_end_x, self.crop_box_end_y))
+            position_logger.log_positions(self.imag_info, upper_left + lower_right) 
+            draw_box = ImageDraw.Draw(self.orig_im)
+            draw_box.rectangle([upper_left, lower_right], outline=None)
+            self._clear_cropbox()
+            self.redraw()
 
     def _locs_trans(self, s, mouse_positions, obj_positions):
         new_x = mouse_positions[0]*(1-s) + obj_positions[0]*s
@@ -148,6 +174,8 @@ class CroppingCanvas(tk.Canvas):
 
 
     def _positions_in_origimg(self, positions):
+        if None in positions:
+            return (None, None)
         x = float(positions[0])
         y = float(positions[1])
         cw, ch = self.orig_im.size
@@ -174,7 +202,8 @@ class CroppingCanvas(tk.Canvas):
             self.crop_box_start_x = self.canvasx(event.x)
             self.crop_box_start_y = self.canvasy(event.y)
             self.crop_box_obj = self.create_rectangle(self.x, self.y, 1, 1, fill="", 
-                                                      width=3.0, outline='black')
+                                                      width=3.0, outline='black',
+                                                      tags='cropbox')
             self.motion_primary_zonecode = zone_codes['outside']
             self.event_positions = positions
             return 
