@@ -14,16 +14,18 @@ vor_centers = []
 valid_vor_centers = []
 
 line_num = 0
-for indx, i in enumerate(range(501, 1001)):
+for indx, i in enumerate(range(501, 1301)):
     img = cv2.imread(os.getenv('HOME') + '/Dropbox/COS424_FinalProject/movie1/%d.png' %i)
     print i
     #gray = img
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
-    vortices = vortex_cascade.detectMultiScale(gray, 1.005, 1, maxSize=(40,40))
+    vortices = vortex_cascade.detectMultiScale(gray, 1.01, 2, maxSize=(40,40))
     centers = map(eval_center, vortices)
     vor_centers.append(centers)
     for (x,y,w,h) in vortices:
+        if 255 in gray[y:y+9,x:x+9]:
+            continue
         img = cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
     
     cv2.imshow('vortex', img)
@@ -34,7 +36,7 @@ for indx, i in enumerate(range(501, 1001)):
     valid_vor_centers.append([])
     f = open("vor.%d" %indx, mode='w')
     for (cx, cy) in centers:
-        if 255 in gray[cy-2:cy+3,cx-2:cx+3]:
+        if 255 in gray[cy-4:cy+5,cx-4:cx+5]:
             continue
         valid_vor_centers[indx].append((cx, cy))
         f.write(str(cx) + ' ' + str(cy))

@@ -1,6 +1,6 @@
 import pandas as pd
 
-traj_pd = pd.read_csv('traj.csv', sep=' ', header=None)
+traj_pd = pd.read_csv('/home/junyic/Work/Courses/4th_year/DataSci/final/MHT/MHT_tracker/traj.csv', sep=' ', header=None)
 traj = {}
 
 for i in range(0, len(traj_pd)):
@@ -19,6 +19,9 @@ for i, id in enumerate(traj.keys()):
 ##
 import cv2
 import os
+from matplotlib import cm
+import scipy.io
+import scipy.ndimage
 
 f = scipy.io.netcdf_file('/home/junyic/Work/Courses/4th_year/DataSci/final/PV_anomaly1.nc', mode='r', mmap=True)
 PV = f.variables['PV_anomaly']

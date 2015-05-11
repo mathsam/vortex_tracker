@@ -9,6 +9,7 @@ import matplotlib.image as mpimg
 import os
 import ttk
 import cropping_canvas
+import vortex_filter
 
 class Vortex(Frame):                  # class of the interface
     def __init__(self, parent=None):
@@ -98,9 +99,10 @@ class Vortex(Frame):                  # class of the interface
         layer = self.layer_spinbox.get()
         time = self.time_spinbox.get()
         self.imgMatr = self.dataMatr[time, layer]
-        mapper = cm.ScalarMappable(cmap=cm.hsv)
-        image_array = np.uint8(255*mapper.to_rgba(self.imgMatr))
-        image_to_disp = PIL.Image.fromarray(image_array)
+#        mapper = cm.ScalarMappable(cmap=cm.hsv)
+#        image_array = np.uint8(255*mapper.to_rgba(self.imgMatr))
+#        image_to_disp = PIL.Image.fromarray(image_array)
+        image_to_disp = vortex_filter.array2imag(self.imgMatr, 3, vortex_filter.highlight_extremes, cmap=cm.Paired)
         image_info = {'field_name': self.filename + '_' + self.keySelected,
                       'layer': layer,
                       'time': time}
