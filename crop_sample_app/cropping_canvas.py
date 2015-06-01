@@ -21,7 +21,7 @@ MAX_ZOOM_IN = 4.
 MIN_ZOOM_OUT = 1.25
     
 class CroppingCanvas(tk.Canvas):
-    def __init__(self, parent=None, width=768, height=768):
+    def __init__(self, parent=None, width=500, height=500):
         tk.Canvas.__init__(self, parent, width=width, height=height, bg='white')
         self.x = self.y = 0
         self.pack(side="top", fill="both", expand=True)
@@ -50,6 +50,7 @@ class CroppingCanvas(tk.Canvas):
         self.scroll = tk.Scrollbar(parent, orient="vertical", command=self.yview)
         self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.config(yscrollcommand=self.scroll.set)
+        self.config(scrollregion=self.bbox("all"), height=500)
 
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
