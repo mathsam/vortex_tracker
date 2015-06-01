@@ -23,9 +23,7 @@ MIN_ZOOM_OUT = 1.25
 class CroppingCanvas(tk.Canvas):
     def __init__(self, parent=None, width=500, height=500):
         tk.Canvas.__init__(self, parent, width=width, height=height, bg='white')
-        self.x = self.y = 0
         self.pack(side="top", fill="both", expand=True)
-        self.config(scrollregion=self.bbox("all"))
         self.bind('<Motion>',        self.motion_over)
         self.bind('<ButtonPress-1>', self.button_primary)
         self.bind('<B1-Motion>',     self.motion_primary)
@@ -47,10 +45,10 @@ class CroppingCanvas(tk.Canvas):
         self.crop_box_end_y = None	# bottom right corner y
         
         # Add the scrollbar
-        self.scroll = tk.Scrollbar(parent, orient="vertical", command=self.yview)
+        self.scroll = tk.Scrollbar(self, orient="vertical", command=self.yview)
         self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.config(yscrollcommand=self.scroll.set)
-        self.config(scrollregion=self.bbox("all"), height=500)
+        self.config(scrollregion=[0, 0, 600, 600])
 
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
@@ -207,7 +205,7 @@ class CroppingCanvas(tk.Canvas):
         if self.crop_box_obj is None:
             self.crop_box_start_x = self.canvasx(event.x)
             self.crop_box_start_y = self.canvasy(event.y)
-            self.crop_box_obj = self.create_rectangle(self.x, self.y, 1, 1, fill="", 
+            self.crop_box_obj = self.create_rectangle(0, 0, 1, 1, fill="", 
                                                       width=3.0, outline='black',
                                                       tags='cropbox')
             self.motion_primary_zonecode = zone_codes['outside']
