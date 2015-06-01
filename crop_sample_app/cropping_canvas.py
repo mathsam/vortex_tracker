@@ -47,8 +47,8 @@ class CroppingCanvas(tk.Canvas):
         self.crop_box_end_y = None	# bottom right corner y
         
         # Add the scrollbar
-        self.scroll = tk.Scrollbar(tk.Tk(), orient="vertical", command=tk.canvas.yview)
-        self.scroll.pack(side=RIGHT, fill=Y)
+        self.scroll = tk.Scrollbar(tk.Tk(), orient="vertical", command=tk.Canvas.yview)
+        self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
