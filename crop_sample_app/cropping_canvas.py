@@ -208,7 +208,7 @@ class CroppingCanvas(tk.Canvas):
         new_size = map(int, map(lambda x: x*self.scale, self.orig_im.size))
         self.im = ImageTk.PhotoImage(self.orig_im.resize(new_size))
         self.im_id = self.create_image(0, 0, anchor=tk.NW, image=self.im)
-        self.config(scrollregion=[0, 0, int(self.im_locs[0]*self.scale), int(self.im_locs[1]*self.scale)])
+        self.config(scrollregion=[0, 0, int(self.orig_im.size[0]*self.scale), int(self.orig_im.size[1]*self.scale)])
 
     def button_primary(self, event):
         positions = (event.x, event.y)
