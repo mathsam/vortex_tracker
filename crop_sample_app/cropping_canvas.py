@@ -27,14 +27,15 @@ class CroppingCanvas(tk.Canvas):
         self.bind('<ButtonPress-1>', self.button_primary)
         self.bind('<B1-Motion>',     self.motion_primary)
 
-	'''
         if 'linux' in sys.platform:
             self.bind("<Button-4>", self.zoom_in)
             self.bind("<Button-5>", self.zoom_out)
-	'''
+        if 'darwin' in sys.platform:
+            self.bind("<MouseWheel>", self.zoom_in)
+            #self.bind("<MouseWheel>", self.zoom_out)
 
-        self.bind("<Button-4>", self.zoom_in)
-        self.bind("<Button-5>", self.zoom_out)
+        #self.bind("<Button-4>", self.zoom_in)
+        #self.bind("<Button-5>", self.zoom_out)
         self.bind("<Double-Button-1>", self.log_cropbox_positions)
 
         self.crop_box_obj = None
