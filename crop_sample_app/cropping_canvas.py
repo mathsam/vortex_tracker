@@ -23,7 +23,6 @@ MIN_ZOOM_OUT = 1.25
 class CroppingCanvas(tk.Canvas):
     def __init__(self, parent=None, width=500, height=500):
         tk.Canvas.__init__(self, parent, width=width, height=height, bg='white')
-        self.pack(side="top", fill="both", expand=True)
         self.bind('<Motion>',        self.motion_over)
         self.bind('<ButtonPress-1>', self.button_primary)
         self.bind('<B1-Motion>',     self.motion_primary)
@@ -55,16 +54,17 @@ class CroppingCanvas(tk.Canvas):
         #which is (upper_left_x, upper_left_y, lower_right_x, lower_right_y)
         #orig_im.size is (width, height)
         self.im_locs = (0, 0) + self.orig_im.size
-        self.redraw()
 
         # Add the scrollbar
-        self.config(scrollregion=[0, 0, self.orig_im.size[0], self.orig_im.size[1]])
-        self.scroll_h = tk.Scrollbar(self, orient="horizontal", command=self.xview)
-        self.scroll_v = tk.Scrollbar(self, orient="vertical", command=self.yview)
+        self.config(scrollregion=[0, 0, width, height])
+        self.scroll_h = tk.Scrollbar(parent, orient="horizontal", command=self.xview)
+        self.scroll_v = tk.Scrollbar(parent, orient="vertical", command=self.yview)
         self.scroll_h.pack(side=tk.BOTTOM, fill="x")
         self.scroll_v.pack(side=tk.RIGHT, fill="y")
+        self.pack(side="top", fill="both", expand=True)
         self.config(xscrollcommand=self.scroll_h.set)
         self.config(yscrollcommand=self.scroll_v.set)
+        self.redraw()
 
     def update_image(self, imag_to_disp, imag_info):
         """update the image drawn on canvas
@@ -204,7 +204,7 @@ class CroppingCanvas(tk.Canvas):
     def redraw(self):
         if self.im_id: self.delete(self.im_id)
         # draw
-        new_size = (self.orig_im.size[0]*self.scale, self.orig_im.size[1]*self.scale)
+        new_size = map(int, map(lambda x: x*self.scale, self.orig_im.size))
         self.im = ImageTk.PhotoImage(self.orig_im.resize(new_size))
         self.im_id = self.create_image(0, 0, anchor=tk.NW, image=self.im)
         self.config(scrollregion=[0, 0, int(self.im_locs[0]*self.scale), int(self.im_locs[1]*self.scale)])
