@@ -43,15 +43,6 @@ class CroppingCanvas(tk.Canvas):
         self.crop_box_start_y = None	# upper left corner y
         self.crop_box_end_x = None	# bottom right corner x
         self.crop_box_end_y = None	# bottom right corner y
-        
-        # Add the scrollbar
-        self.config(scrollregion=[0, 0, 500, 500])
-        self.scroll_h = tk.Scrollbar(self, orient="horizontal", command=self.xview)
-        self.scroll_v = tk.Scrollbar(self, orient="vertical", command=self.yview)
-        self.scroll_h.pack(side=tk.BOTTOM, fill="x")
-        self.scroll_v.pack(side=tk.RIGHT, fill="y")
-        self.config(xscrollcommand=self.scroll_h.set)
-        self.config(yscrollcommand=self.scroll_v.set)
 
         self.scale = 1.0
         self.zoom_log = 0 # scale = ZOOM_FACTOR**zoom_log if no numerical error
@@ -65,6 +56,15 @@ class CroppingCanvas(tk.Canvas):
         #orig_im.size is (width, height)
         self.im_locs = (0, 0) + self.orig_im.size
         self.redraw()
+
+        # Add the scrollbar
+        self.config(scrollregion=[0, 0, self.orig_im.size[0], self.orig_im.size[1]])
+        self.scroll_h = tk.Scrollbar(self, orient="horizontal", command=self.xview)
+        self.scroll_v = tk.Scrollbar(self, orient="vertical", command=self.yview)
+        self.scroll_h.pack(side=tk.BOTTOM, fill="x")
+        self.scroll_v.pack(side=tk.RIGHT, fill="y")
+        self.config(xscrollcommand=self.scroll_h.set)
+        self.config(yscrollcommand=self.scroll_v.set)
 
     def update_image(self, imag_to_disp, imag_info):
         """update the image drawn on canvas
@@ -192,13 +192,22 @@ class CroppingCanvas(tk.Canvas):
         py_in_orig = self.im_locs[1] + y/ch*ch_in_origimg
         return px_in_orig, py_in_orig
 
-
+    '''
     def redraw(self):
         if self.im_id: self.delete(self.im_id)
         tmp = self.orig_im.crop(map(int, self.im_locs))
         # draw
         self.im = ImageTk.PhotoImage(tmp.resize(self.orig_im.size))
         self.im_id = self.create_image(0, 0, anchor=tk.NW, image=self.im)
+    '''
+
+    def redraw(self):
+        if self.im_id: self.delete(self.im_id)
+        # draw
+        new_size = (self.orig_im.size[0]*self.scale, self.orig_im.size[1]*self.scale)
+        self.im = ImageTk.PhotoImage(self.orig_im.resize(new_size))
+        self.im_id = self.create_image(0, 0, anchor=tk.NW, image=self.im)
+        self.config(scrollregion=[0, 0, int(self.im_locs[0]*self.scale), int(self.im_locs[1]*self.scale)])
 
     def button_primary(self, event):
         positions = (event.x, event.y)
