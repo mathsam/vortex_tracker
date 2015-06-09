@@ -150,7 +150,7 @@ class CroppingCanvas(tk.Canvas):
         # zoomed out canvas
         canvas_width = self.im_locs[2] - self.im_locs[0]
         canvas_height = self.im_locs[3] - self.im_locs[1]
-        if canvas_width >= orig_w*MIN_ZOOM_OUT or canvas_height >= orig_h*MIN_ZOOM_OUT:
+        if canvas_width <= orig_w/self.scale or canvas_height <= orig_h/self.scale:
             return
         self.scale /= ZOOM_FACTOR
         self.zoom_log -= 1
