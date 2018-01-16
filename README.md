@@ -6,3 +6,6 @@ python crop_sample_app.py
 ```
 
 The app is tested on Linux system, and unfortunatly it has problem to run on Mac right now.
+
+# Vortex tracking
+[demo](https://youtu.be/xkx5Nel-cHY)
