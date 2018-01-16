@@ -9,5 +9,7 @@ The app is tested on Linux system, and unfortunatly it has problem to run on Mac
 
 # Vortex tracking
 Tracking vortex involves detecting vortices in each image frame and using Multiple hypothesis tracking (MHT) to connect each position detected into trajectories.
+
 [detection](https://youtu.be/Y9RDsoVO0cU)
+
 [tracking](https://youtu.be/xkx5Nel-cHY)
